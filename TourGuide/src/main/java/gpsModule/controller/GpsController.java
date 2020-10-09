@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class GpsController {
     }
 */
 
-
+/*
     @RequestMapping("/getUserLocation")
     public Mono<VisitedLocation> getUserLocation(@RequestParam String userId){
         logger.debug("Request getUserLocation");
@@ -41,8 +42,8 @@ public class GpsController {
         logger.debug("Response : UUID=" + visitedLocation.userId +" Lat=" + visitedLocation.location.latitude + " Lon=" + visitedLocation.location.longitude + " Date=" + visitedLocation.timeVisited +"/n");
         return Mono.just(visitedLocation);
     }
+*/
 
-/*
     @Async
     @GetMapping("/getUserLocation")
     public CompletableFuture<VisitedLocation> getUserLocation(@RequestParam String userId){
@@ -60,6 +61,33 @@ public class GpsController {
             return gpsService.getUserLocation(UUID.fromString(userId));
         }
         ));
+    }
+
+/*
+    @Async
+    @GetMapping("/getUserLocation")
+    public DeferredResult<VisitedLocation> getUserLocation(@RequestParam String userId){
+        logger.debug("Track Location - Thread entrant : " + Thread.currentThread().getName());
+
+        logger.debug("Request getUserLocation");
+        VisitedLocation visitedLocation = gpsService.getUserLocation(UUID.fromString(userId));
+        logger.debug("Response : UUID=" + visitedLocation.userId +" Lat=" + visitedLocation.location.latitude + " Lon=" + visitedLocation.location.longitude + " Date=" + visitedLocation.timeVisited +"/n");
+
+        logger.debug("Track Location - Thread sortant : " + Thread.currentThread().getName());
+
+        DeferredResult<VisitedLocation> deferredResult = new DeferredResult<>();
+
+        CompletableFuture.runAsync(() -> gpsService.getUserLocation(UUID.fromString(userId)))
+                .whenComplete((p, throwable) ->
+                        {
+                            logger.debug("Current Thread Name :{}", Thread.currentThread().getName());
+                            deferredResult.setResult(visitedLocation);
+                        }
+
+
+                );
+
+        return deferredResult;
     }
 */
 
